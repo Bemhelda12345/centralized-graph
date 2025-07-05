@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real-Time Electric Usage</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+</head>
+<body>
+  <h2>Electric Consumption (kWh) - Live Chart</h2>
+  <canvas id="consumptionChart" width="800" height="400"></canvas>
+
+  <script>
+    // 🔁 REPLACE WITH YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+  apiKey: "AIzaSyDtSB855fSpikoqatfFrXJ4T7w5osPngwk",
+  authDomain: "centralize-524ea.firebaseapp.com",
+  databaseURL: "https://centralize-524ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "centralize-524ea",
+  storageBucket: "centralize-524ea.firebasestorage.app",
+  messagingSenderId: "1029942918862",
+  appId: "1:1029942918862:web:3d3d6eeb049ab8e872da9f",
+  measurementId: "G-D81WQW7E55"
+};
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const ctx = document.getElementById('consumptionChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'kWh',
+          data: [],
+          borderColor: 'blue',
+          fill: false,
+          tension: 0.2
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: 'Time' }},
+          y: { title: { display: true, text: 'kWh' }}
+        }
+      }
+    });
+
+    function updateChart() {
+      db.ref('readings').once('value', snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const labels = Object.keys(data);
+        const values = Object.values(data);
+
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = values;
+        chart.update();
+      });
+    }
+
+    updateChart(); // Initial load
+    setInterval(updateChart, 5000); // Refresh every 5 seconds
+  </script>
+</body>
+</html>
